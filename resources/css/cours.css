@@ -1,0 +1,29 @@
+body {
+    background: linear-gradient(to right, #eef2f3, #8e9eab);
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.course-form-container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    max-width: 700px;
+    margin: 50px auto;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #444;
+}
+/* resources/css/cours.css */
+body {
+    background: #10a9c0;
+  }
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+}

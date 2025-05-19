@@ -1,0 +1,24 @@
+# Code Citations
+
+## License: GPL_3_0
+https://github.com/zzzteph/appsec.study/tree/fab565bab1eae2989e241ca6672c9fa30afbbe44/database/migrations/2021_06_01_125737_create_user_lessons_table.php
+
+```
+(Blueprint $table) {
+        $table->id();
+        $table->foreignId('lesson_id')->constrained()->onDelete('cascade');
+        $table->foreignId('user_id')->constrained()->
+```
+
+
+## License: unknown
+https://github.com/klaudiarapaj/ESC-Project/tree/f4df1dcd58b04c78890a7e7d0ad8d6fdaa9c8a55/database/migrations/2023_05_21_214349_create_comments_table.php
+
+```
+->onDelete('cascade');
+        $table->foreignId('user_id')->constrained()->onDelete('cascade');
+        $table->text('content');
+        $table->timestamps();
+    });
+```
+

@@ -1,0 +1,90 @@
+  /* Arrière-plan pour la page */
+body {
+    background-image: url('/images/tonde1.jpg'); /* Assure-toi que l'image est dans le bon dossier */
+    background-size      : cover;                          /* Pour que l'image couvre toute la page */
+    background-position  : center center;                  /* Pour centrer l'image */
+    background-attachment: fixed;                          /* Pour que l'image reste fixe lorsque tu fais défiler la page */
+    background-repeat    : no-repeat;                      /* Empêche la répétition de l'image */
+}
+
+  /* Formulaire de contact */
+.contact-form {
+    width           : 100%;
+    max-width       : 600px;
+    margin          : 50px auto;
+    padding         : 30px;
+    background-color: rgba(255, 255, 255, 0.9);       /* Fond blanc légèrement transparent pour mieux voir l'arrière-plan */
+    border-radius   : 10px;
+    box-shadow      : 0 4px 10px rgba(0, 0, 0, 0.1);
+    font-family     : 'Arial', sans-serif;
+}
+
+  /* Autres styles de formulaire (identiques à ce que nous avons déjà) */
+.contact-form h2 {
+    font-size    : 1.8rem;
+    color        : #333;
+    margin-bottom: 20px;
+    text-align   : center;
+}
+
+.contact-form .form-group {
+    margin-bottom: 25px;
+}
+
+.contact-form label {
+    font-weight  : bold;
+    font-size    : 1.1rem;
+    color        : #333;
+    margin-bottom: 8px;
+    display      : block;
+}
+
+.contact-form input, .contact-form textarea {
+    width           : 100%;
+    padding         : 12px;
+    font-size       : 1rem;
+    border          : 1px solid #ccc;
+    border-radius   : 6px;
+    background-color: #f7f7f7;
+    box-sizing      : border-box;
+    transition      : border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.contact-form input:focus, .contact-form textarea:focus {
+    outline         : none;
+    border-color    : #007bff;
+    background-color: #fff;
+}
+
+.contact-form textarea {
+    resize    : vertical;
+    min-height: 150px;
+}
+
+.contact-form .error-message {
+    font-size : 0.9rem;
+    color     : #f44336;
+    margin-top: 5px;
+    text-align: center;
+}
+
+.contact-form button {
+    width           : 100%;
+    padding         : 14px;
+    font-size       : 1.1rem;
+    background-color: #007bff;
+    color           : white;
+    border          : none;
+    border-radius   : 6px;
+    cursor          : pointer;
+    transition      : background-color 0.3s ease;
+    box-sizing      : border-box;
+}
+
+.contact-form button:hover {
+    background-color: #0056b3;
+}
+
+.contact-form button:focus {
+    outline: none;
+}

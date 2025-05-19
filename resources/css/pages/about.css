@@ -1,0 +1,5 @@
+/* Styles extraits de about.blade.php */
+.animate-fadeIn { animation: fadeIn 1s ease forwards; }
+@keyframes fadeIn { from { opacity:0;} to { opacity:1;} }
+.animate-lineGrow { animation: lineGrow 1s ease forwards; }
+@keyframes lineGrow { from { width:0;} to { width:100%;} }

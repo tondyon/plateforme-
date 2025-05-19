@@ -1,0 +1,8 @@
+
+tunnels:
+  plateforme:
+    addr: 8000
+    proto: http
+    
+    agent:
+  authtoken: 2w5GLLaPpwADHepPCOQpm3ts7Tc_3sBEhoomMFnsynQgQFrkW
