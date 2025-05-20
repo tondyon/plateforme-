@@ -21,7 +21,7 @@
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center gap-2">
                 <img src="/images/logo.jpeg" alt="Logo" class="h-8 w-8 object-cover">
-                <span class="text-2xl font-bold text-blue-700">COURSE<span class="text-black">VIA</span></span>
+                <span class="text-2xl font-bold text-blue-700 animate-fadeInUp">Institut des Savoirs Numériques</span>
             </div>
             <nav class="space-x-6 text-sm font-medium flex-1 flex justify-center">
                 <a href="#" class="text-gray-700 hover:text-blue-700 transition">Page d'accueil</a>
