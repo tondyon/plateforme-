@@ -4,7 +4,7 @@
         <!-- Logo et nom du site -->
         <div class="flex items-center gap-2">
             <img src="/images/logo.jpeg" alt="Plateforme Logo" class="h-8 w-8 object-cover">
-            <span class="text-2xl font-bold text-blue-700">COURSE<span class="text-black">VIA</span></span>
+            <span class="text-2xl font-bold text-blue-700 animate-fadeInUp">Institut des Savoirs Numériques</span>
             <!-- Menu hamburger mobile -->
             <button @click="open = !open" class="md:hidden ml-4 focus:outline-none">
                 <svg class="w-7 h-7 text-blue-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
