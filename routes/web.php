@@ -24,6 +24,8 @@ use App\Http\Controllers\{
 Route::view('/', 'welcome');
 Route::view('/about', 'about')->name('about');
 Route::view('/services', 'services')->name('services');
+Route::view('/carrieres', 'carrieres')->name('carrieres');
+Route::view('/apropos', 'apropos')->name('apropos');
 
 Route::get('/verify-certificate/{code}', [CertificateController::class, 'verify'])
     ->name('certificates.verify')
@@ -138,6 +140,12 @@ Route::get('/formateur/meetings/{meeting}/edit', [MeetingController::class, 'edi
 Route::put('/formateur/meetings/{meeting}', [MeetingController::class, 'update'])->name('formateur.meetings.update');
 Route::delete('/formateur/meetings/{meeting}', [MeetingController::class, 'destroy'])->name('formateur.meetings.destroy');
 // --- Fin des routes formateur publiques ---
+
+// Route dynamique pour les rôles (mega menu)
+Route::get('/roles/{role}', function($role) {
+    // Affiche une page de rôle simple, à personnaliser plus tard
+    return view('roles.show', ['role' => $role]);
+})->name('roles.show');
 
 
     /*
