@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Http\Controllers\{
     ProfileController,
     ContactController,
@@ -13,8 +14,22 @@ use App\Http\Controllers\{
     CourseFileController,
     MeetingController,
     TestPermissionController,
-    Auth\GoogleController
+    Auth\GoogleController,
+    RoleController,
+    CategoryController,
+    CertificationController
 };
+use App\Http\Controllers\Admin\{
+    CourseController as AdminCourseController,
+    CertificateVerificationController,
+    LogController,
+    SupervisorLogController,
+    DiplomeController
+};
+use App\Http\Controllers\Admin\DiplomeController as AdminDiplomeController;
+use App\Http\Controllers\FormateurCourseController;
+use App\Http\Controllers\Supervisor\ExportController;
+use App\Http\Controllers\DiplomeFrontController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,31 +42,36 @@ Route::view('/services', 'services')->name('services');
 Route::view('/carrieres', 'carrieres')->name('carrieres');
 Route::view('/apropos', 'apropos')->name('apropos');
 
+// Vérification certificat publique
 Route::get('/verify-certificate/{code}', [CertificateController::class, 'verify'])
     ->name('certificates.verify')
     ->middleware('rate.limit.certificates');
+
+// Authentification Google
+Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.login');
+Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
+
+// Route de test
+Route::get('/test-unique', fn() => 'UNIQUE_TEST_' . uniqid());
 
 /*
 |--------------------------------------------------------------------------
 | Routes Authentifiées
 |--------------------------------------------------------------------------
 */
-// Route pour envoyer le lien de vérification d'email
-Route::post('/email/verification-notification', function (Illuminate\Http\Request $request) {
+Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
     return back()->with('message', 'Le lien de vérification a été envoyé !');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
-
-    // Dashboard général
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Contact
     Route::get('/contact', [ContactController::class, 'create'])->name('contact.index');
     Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
 
-    // Profil utilisateur
+    // Profil
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('update');
@@ -72,8 +92,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/{course}/progress', [CourseController::class, 'updateProgress'])->name('progress.update');
         Route::post('/{course}/enroll', [CourseController::class, 'enroll'])->name('enroll');
     });
-
-    // Mes cours
     Route::get('/my-courses', [CourseController::class, 'myCourses'])->name('courses.my');
 
     // Badges
@@ -89,7 +107,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         return response()->json(['success' => true]);
     })->name('notifications.mark-as-read');
 
-    // Test des permissions
+    // Test permissions
     Route::get('/test-permissions', [TestPermissionController::class, 'checkSupervisorPermissions']);
 
     /*
@@ -97,56 +115,53 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     | Routes Formateur
     |--------------------------------------------------------------------------
     */
-    // Route publique pour la liste des réunions formateur
-Route::get('/formateur/meetings', [MeetingController::class, 'index'])->name('formateur.meetings.index');
-// Route publique pour la page direct formateur
-Route::get('/formateur/direct', fn() => view('formateur.meetings.direct', ['jitsiUrl' => 'https://meet.jit.si/' . uniqid('direct_')]))->name('formateur.direct');
+    Route::prefix('formateur')->name('formateur.')->group(function () {
+        Route::get('/dashboard', [FormateurDashboardController::class, 'index'])->name('dashboard');
 
-Route::get('/formateur/courses', [\App\Http\Controllers\FormateurCourseController::class, 'index'])->name('formateur.courses.index');
-Route::get('/formateur/courses/create', [\App\Http\Controllers\FormateurCourseController::class, 'create'])->name('formateur.courses.create');
-Route::get('/formateur/courses/{course}/edit', [\App\Http\Controllers\FormateurCourseController::class, 'edit'])->name('formateur.courses.edit');
-Route::delete('/formateur/courses/{course}', [\App\Http\Controllers\FormateurCourseController::class, 'destroy'])->name('formateur.courses.destroy');
+        // Courses
+        Route::prefix('courses')->name('courses.')->group(function () {
+            Route::get('/', [FormateurCourseController::class, 'index'])->name('index');
+            Route::get('/create', [FormateurCourseController::class, 'create'])->name('create');
+            Route::get('/{course}/edit', [FormateurCourseController::class, 'edit'])->name('edit');
+            Route::delete('/{course}', [FormateurCourseController::class, 'destroy'])->name('destroy');
 
-Route::get('/formateur/dashboard', [FormateurDashboardController::class, 'index'])->name('formateur.dashboard');
+            // Fichiers
+            Route::prefix('files')->name('files.')->group(function () {
+                Route::get('/', [CourseFileController::class, 'index'])->name('index');
+                Route::get('/create', [CourseFileController::class, 'create'])->name('create');
+                Route::post('/', [CourseFileController::class, 'store'])->name('store');
+                Route::get('/{file}', [CourseFileController::class, 'show'])->name('show');
+                Route::delete('/{file}', [CourseFileController::class, 'destroy'])->name('destroy');
+            });
+        });
 
-    Route::get('/formateur/courses/files', [CourseFileController::class, 'index'])->name('formateur.courses.files.index');
-    Route::get('/formateur/courses/files/create', [CourseFileController::class, 'create'])->name('formateur.courses.files.create');
-    Route::post('/formateur/courses/files', [CourseFileController::class, 'store'])->name('formateur.courses.files.store');
-    Route::get('/formateur/courses/files/{file}', [CourseFileController::class, 'show'])->name('formateur.courses.files.show');
-    Route::delete('/formateur/courses/files/{file}', [CourseFileController::class, 'destroy'])->name('formateur.courses.files.destroy');
+        // Réunions
+        Route::prefix('meetings')->name('meetings.')->group(function () {
+            Route::get('/', [MeetingController::class, 'index'])->name('index');
+        });
 
-    Route::get('/formateur/direct', fn() => view('formateur.meetings.direct', ['jitsiUrl' => 'https://meet.jit.si/' . uniqid('direct_')]))->name('formateur.direct');
-    Route::get('/formateur/direct/create', [DirectController::class, 'create'])->name('formateur.direct.create');
-    Route::post('/formateur/direct', [DirectController::class, 'store'])->name('formateur.direct.store');
-    Route::get('/formateur/direct/{direct}', [DirectController::class, 'show'])->name('formateur.direct.show');
-Route::get('/formateur/courses/files', [CourseFileController::class, 'index'])->name('formateur.courses.files.index');
-Route::get('/formateur/courses/files/create', [CourseFileController::class, 'create'])->name('formateur.courses.files.create');
-Route::post('/formateur/courses/files', [CourseFileController::class, 'store'])->name('formateur.courses.files.store');
-Route::get('/formateur/courses/files/{file}', [CourseFileController::class, 'show'])->name('formateur.courses.files.show');
-Route::delete('/formateur/courses/files/{file}', [CourseFileController::class, 'destroy'])->name('formateur.courses.files.destroy');
+        // Directs
+        Route::prefix('directs')->name('directs.')->group(function () {
+            Route::get('/', [DirectController::class, 'index'])->name('index');
+        });
+        Route::prefix('meetings')->name('meetings.')->group(function () {
+            Route::get('/', [MeetingController::class, 'index'])->name('index');
+            Route::get('/create', [MeetingController::class, 'create'])->name('create');
+            Route::post('/', [MeetingController::class, 'store'])->name('store');
+            Route::get('/{meeting}', [MeetingController::class, 'show'])->name('show');
+            Route::get('/{meeting}/edit', [MeetingController::class, 'edit'])->name('edit');
+            Route::put('/{meeting}', [MeetingController::class, 'update'])->name('update');
+            Route::delete('/{meeting}', [MeetingController::class, 'destroy'])->name('destroy');
+        });
 
-// Directs
-Route::get('/formateur/direct', fn() => view('formateur.meetings.direct', ['jitsiUrl' => 'https://meet.jit.si/' . uniqid('direct_')]))->name('formateur.direct');
-Route::get('/formateur/direct/create', [DirectController::class, 'create'])->name('formateur.direct.create');
-Route::post('/formateur/direct', [DirectController::class, 'store'])->name('formateur.direct.store');
-Route::get('/formateur/direct/{direct}', [DirectController::class, 'show'])->name('formateur.direct.show');
-
-// Réunions
-Route::get('/formateur/meetings', [MeetingController::class, 'index'])->name('formateur.meetings.index');
-Route::get('/formateur/meetings/create', [MeetingController::class, 'create'])->name('formateur.meetings.create');
-Route::post('/formateur/meetings', [MeetingController::class, 'store'])->name('formateur.meetings.store');
-Route::get('/formateur/meetings/{meeting}', [MeetingController::class, 'show'])->name('formateur.meetings.show');
-Route::get('/formateur/meetings/{meeting}/edit', [MeetingController::class, 'edit'])->name('formateur.meetings.edit');
-Route::put('/formateur/meetings/{meeting}', [MeetingController::class, 'update'])->name('formateur.meetings.update');
-Route::delete('/formateur/meetings/{meeting}', [MeetingController::class, 'destroy'])->name('formateur.meetings.destroy');
-// --- Fin des routes formateur publiques ---
-
-// Route dynamique pour les rôles (mega menu)
-Route::get('/roles/{role}', function($role) {
-    // Affiche une page de rôle simple, à personnaliser plus tard
-    return view('roles.show', ['role' => $role]);
-})->name('roles.show');
-
+        // Directs
+        Route::prefix('direct')->name('direct.')->group(function () {
+            Route::get('/', fn() => view('formateur.meetings.direct', ['jitsiUrl' => 'https://meet.jit.si/' . uniqid('direct_')]))->name('index');
+            Route::get('/create', [DirectController::class, 'create'])->name('create');
+            Route::post('/', [DirectController::class, 'store'])->name('store');
+            Route::get('/{direct}', [DirectController::class, 'show'])->name('show');
+        });
+    });
 
     /*
     |--------------------------------------------------------------------------
@@ -164,48 +179,85 @@ Route::get('/roles/{role}', function($role) {
     */
     Route::prefix('supervisor')->name('supervisor.')->middleware('supervisor')->group(function () {
         Route::get('/dashboard', fn() => view('supervisor.dashboard'))->name('dashboard');
-        Route::get('/export-courses', [\App\Http\Controllers\Supervisor\ExportController::class, 'exportCourses'])->name('export-courses');
+        Route::get('/export-courses', [ExportController::class, 'exportCourses'])->name('export-courses');
     });
 
     /*
     |--------------------------------------------------------------------------
-    | Routes Administrateur
+    | Routes Admin
     |--------------------------------------------------------------------------
     */
     Route::prefix('admin')->name('admin.')->middleware('can:admin')->group(function () {
         Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
 
-        // Gestion des cours
         Route::prefix('courses')->name('courses.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Admin\CourseController::class, 'index'])->name('index');
-            Route::get('/create', [\App\Http\Controllers\Admin\CourseController::class, 'create'])->name('create');
-            Route::post('/', [\App\Http\Controllers\Admin\CourseController::class, 'store'])->name('store');
-            Route::get('/{course}/edit', [\App\Http\Controllers\Admin\CourseController::class, 'edit'])->name('edit');
-            Route::get('/statistics', [\App\Http\Controllers\Admin\CourseController::class, 'statistics'])->name('statistics');
-            Route::get('/logs', [\App\Http\Controllers\Admin\LogController::class, 'index'])->name('logs');
+            Route::get('/', [AdminCourseController::class, 'index'])->name('index');
+            Route::get('/create', [AdminCourseController::class, 'create'])->name('create');
+            Route::post('/', [AdminCourseController::class, 'store'])->name('store');
+            Route::get('/{course}/edit', [AdminCourseController::class, 'edit'])->name('edit');
+            Route::get('/statistics', [AdminCourseController::class, 'statistics'])->name('statistics');
+            Route::get('/logs', [LogController::class, 'index'])->name('logs');
         });
 
-        // Vérification des certificats
         Route::prefix('certificate-verifications')->name('certificates.verifications.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Admin\CertificateVerificationController::class, 'index'])->name('index');
-            Route::get('/export', [\App\Http\Controllers\Admin\CertificateVerificationController::class, 'export'])->name('export');
+            Route::get('/', [CertificateVerificationController::class, 'index'])->name('index');
+            Route::get('/export', [CertificateVerificationController::class, 'export'])->name('export');
         });
 
-        // Logs des superviseurs
-        Route::get('/supervisor-logs', [\App\Http\Controllers\Admin\SupervisorLogController::class, 'index'])->name('supervisor-logs');
+        Route::get('/supervisor-logs', [SupervisorLogController::class, 'index'])->name('supervisor-logs');
+        Route::get('/admin/diplomes', [AdminDiplomeController::class, 'index']);
+
+
     });
 });
 
-  /*
+/*
 |--------------------------------------------------------------------------
-| Authentification via Google
+| Routes Générales Supplémentaires
 |--------------------------------------------------------------------------
 */
-Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.login');
-Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
-
-Route::get('/test-unique', function () {
-    return 'UNIQUE_TEST_' . uniqid();
+Route::prefix('roles')->name('roles.')->group(function () {
+    Route::get('/', [RoleController::class, 'index'])->name('index');
+    Route::get('/{role}', [RoleController::class, 'show'])->name('show');
 });
+
+Route::prefix('categories')->name('categories.')->group(function () {
+    Route::get('/', [CategoryController::class, 'index'])->name('index');
+});
+
+Route::prefix('certifications')->name('certifications.')->group(function () {
+    Route::get('/', [CertificationController::class, 'index'])->name('index');
+
+    Route::get('/diplomes', [DiplomeFrontController::class, 'index'])->name('diplomes.index');
+
+});
+
+// Correction temporaire de l'erreur Route [cart] not defined
+Route::get('/cart', function () {
+    return view('cart'); // Créez resources/views/cart.blade.php si besoin
+})->name('cart');
+
+// Correction temporaire de l'erreur Route [notifications] not defined
+Route::get('/notifications', function () {
+    return view('notifications'); // Créez resources/views/notifications.blade.php si besoin
+})->name('notifications');
+
+// Correction temporaire de l'erreur Route [profile] not defined
+Route::get('/profile', function () {
+    return view('profile.show'); // Utilise resources/views/profile/show.blade.php
+})->name('profile');
+
+// Correction temporaire de l'erreur Route [profile.edit] not defined
+Route::get('/profile/edit', function () {
+    return view('profile.edit'); // Utilise resources/views/profile/edit.blade.php
+})->name('profile.edit');
+
+// Routes RESTful pour la gestion des certificats
+Route::resource('certificates', App\Http\Controllers\CertificationController::class);
+
+// Correction temporaire de l'erreur Route [settings] not defined
+Route::get('/settings', function () {
+    return view('settings'); // Créez resources/views/settings.blade.php si besoin
+})->name('settings');
 
 require __DIR__.'/auth.php';
