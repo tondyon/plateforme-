@@ -28,6 +28,7 @@
                 <a href="#" class="text-gray-700 hover:text-blue-700 transition">Mon apprentissage</a>
                 <a href="#" class="text-gray-700 hover:text-blue-700 transition">Diplômes en ligne</a>
                 <a href="#" class="text-gray-700 hover:text-blue-700 transition">Carrières</a>
+                <a href="{{ route('certificates.index') }}" class="text-gray-700 hover:text-blue-700 transition">Certificats</a>
             </nav>
             <a href="{{ route('login') }}" class="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 shadow">
                 <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a9 9 0 0 1 13 0"/></svg>
